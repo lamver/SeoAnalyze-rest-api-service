@@ -1,0 +1,312 @@
+{
+  "url": "https://datahunter.store",
+  "seo_health": {
+    "score": 96,
+    "total_issues_found": 2,
+    "critical_issues_count": 0,
+    "error_issues_count": 0,
+    "warning_issues_count": 2
+  },
+  "html_validation": {
+    "total_issues": 5,
+    "errors": [
+      {
+        "type": "error",
+        "lastLine": 9,
+        "lastColumn": 361,
+        "firstColumn": 290,
+        "message": "Bad value “http://w3.org” for the attribute “xmlns” (only “http://www.w3.org/2000/svg” permitted here).",
+        "extract": "ion-none\"><svg width=\"40\" height=\"40\" viewBox=\"0 0 200 200\" xmlns=\"http://w3.org\">\n     ",
+        "hiliteStart": 10,
+        "hiliteLength": 72
+      },
+      {
+        "type": "error",
+        "lastLine": 34,
+        "lastColumn": 153,
+        "firstColumn": 109,
+        "message": "Element “ul” not allowed as child of element “ul” in this context. (Suppressing further errors from this subtree.)",
+        "extract": "av-pills\"><ul class=\"nav nav-pills align-items-center\"><li cl",
+        "hiliteStart": 10,
+        "hiliteLength": 45
+      },
+      {
+        "type": "error",
+        "lastLine": 35,
+        "lastColumn": 7657,
+        "firstColumn": 7584,
+        "message": "Bad value “http://w3.org” for the attribute “xmlns” (only “http://www.w3.org/2000/svg” permitted here).",
+        "extract": "Bootstrap><svg width=\"140\" height=\"140\" viewBox=\"0 0 200 200\" xmlns=\"http://w3.org\">\n     ",
+        "hiliteStart": 10,
+        "hiliteLength": 74
+      },
+      {
+        "type": "error",
+        "lastLine": 38,
+        "lastColumn": 89,
+        "firstColumn": 29,
+        "message": "Duplicate ID “steel”.",
+        "extract": "          <linearGradient id=\"steel\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">\n     ",
+        "hiliteStart": 10,
+        "hiliteLength": 61
+      }
+    ],
+    "warnings": [
+      {
+        "type": "info",
+        "lastLine": 12,
+        "lastColumn": 89,
+        "firstColumn": 29,
+        "subType": "warning",
+        "message": "The first occurrence of ID “steel” was here.",
+        "extract": "          <linearGradient id=\"steel\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">\n     ",
+        "hiliteStart": 10,
+        "hiliteLength": 61
+      }
+    ]
+  },
+  "meta": {
+    "title": "AI Data API & Smart Search Tools | DataHunter {store}",
+    "description": "The ultimate AI utility hub. DataHunter provides robust APIs for advanced data extraction, AI-powered search, and heavy-duty data operations. Scale with ease."
+  },
+  "raw_data": {
+    "analyzer_version": "1.0.0",
+    "url": "https://datahunter.store",
+    "basic_seo": {
+      "title": "AI Data API & Smart Search Tools | DataHunter {store}",
+      "title_length": 53,
+      "meta_description": "The ultimate AI utility hub. DataHunter provides robust APIs for advanced data extraction, AI-powered search, and heavy-duty data operations. Scale with ease.",
+      "meta_description_length": 158,
+      "meta_robots": [],
+      "canonical_url": "https://datahunter.store/",
+      "viewport": "width=device-width,initial-scale=1",
+      "charset": "utf-8",
+      "html_lang": "en",
+      "favicon_url": "https://datahunter.store/favicon.ico"
+    },
+    "headings": {
+      "all_headings": {
+        "h1": [
+          "Robust Infrastructure for AI-Driven Applications"
+        ],
+        "h2": [
+          "Explore our API modules"
+        ],
+        "h3": [
+          "AI: LLM Models",
+          "AI: TEXT-TO-VOICE-LITE",
+          "Checker",
+          "DATA: Torrents",
+          "Data: Wiki",
+          "Tools: Images",
+          "Tools: Text"
+        ],
+        "h4": [
+          "Get Vendor Model Details",
+          "Get Piper voice models",
+          "Synthesize text to voice",
+          "Check SSL Certificate",
+          "Get Client Info",
+          "Get torrent categories",
+          "Search torrents",
+          "Search Wikipedia",
+          "Generate Image Placeholder",
+          "Generate QR Code",
+          "Detect Sensitive Data"
+        ]
+      },
+      "h1_tags_content": [
+        "Robust Infrastructure for AI-Driven Applications"
+      ],
+      "h1_count": 1,
+      "total_headings_count": 20
+    },
+    "content_quality": {
+      "content_length_chars": 1803,
+      "text_to_html_ratio_percent": 14.06,
+      "keyword_density_top_10_with_bigrams": {
+        "data": 3.96,
+        "tools": 3.47,
+        "returns": 2.97,
+        "text": 2.97,
+        "image": 2.48,
+        "models": 2.48,
+        "search": 2.48,
+        "torrents": 2.48,
+        "api": 1.98,
+        "model": 1.98
+      },
+      "flesch_reading_ease_score": 50.4,
+      "paragraph_count": 13,
+      "has_videos_embedded": false,
+      "has_tables_present": false
+    },
+    "images": {
+      "total_images_found": 0,
+      "images_with_alt_attribute": 0,
+      "images_missing_alt_attribute": 0,
+      "images_with_empty_alt_text": 0,
+      "images_with_long_alt_text": 0,
+      "decorative_images_correctly_marked": 0
+    },
+    "links": {
+      "total_links_found": 17,
+      "internal_links_count": 17,
+      "external_links_count": 0,
+      "nofollow_internal_links_count": 0,
+      "nofollow_external_links_count": 0,
+      "anchor_text_distribution_percent": {
+        "keyword_like_or_short_phrase": 82.4,
+        "descriptive_long_phrase": 17.6
+      }
+    },
+    "social_media_tags": {
+      "open_graph_tags": {
+        "og:title": "AI Data API & Smart Search Tools",
+        "og:description": "The ultimate AI utility hub. DataHunter provides robust APIs for advanced data extraction, AI-powered search, and heavy-duty data operations. Scale with ease.",
+        "og:type": "website",
+        "og:image": "https://datahunter.store/static/assets/img/og-cover.png",
+        "og:url": "https://datahunter.store/"
+      },
+      "twitter_card_tags": {}
+    },
+    "structured_data": {
+      "json_ld_data_blocks": [],
+      "microdata_items": [],
+      "rdfa_items": [],
+      "detected_schema_org_types": []
+    },
+    "seo_health": {
+      "score": 96,
+      "total_issues_found": 2,
+      "critical_issues_count": 0,
+      "error_issues_count": 0,
+      "warning_issues_count": 2
+    },
+    "issues": [
+      {
+        "level": 1,
+        "message": "Optimal Title Length",
+        "element_type": "Title",
+        "details": "Length 53 is optimal.",
+        "recommendation": null
+      },
+      {
+        "level": 1,
+        "message": "Optimal Meta Description Length",
+        "element_type": "Meta Description",
+        "details": "Length 158 is optimal.",
+        "recommendation": null
+      },
+      {
+        "level": 0,
+        "message": "Meta Robots Not Specified",
+        "element_type": "Meta Robots",
+        "details": "Defaults to 'index, follow'.",
+        "recommendation": "Add if specific directives needed."
+      },
+      {
+        "level": 1,
+        "message": "Canonical URL Matches Page URL",
+        "element_type": "Canonical URL",
+        "details": "Canonical URL correctly points to the current page.",
+        "recommendation": null
+      },
+      {
+        "level": 1,
+        "message": "Viewport Configured for Mobile",
+        "element_type": "Viewport",
+        "details": "Viewport appears correctly configured.",
+        "recommendation": null
+      },
+      {
+        "level": 1,
+        "message": "UTF-8 Charset Declared",
+        "element_type": "Charset",
+        "details": "Page uses UTF-8 character encoding.",
+        "recommendation": null
+      },
+      {
+        "level": 1,
+        "message": "HTML Language Declared",
+        "element_type": "HTML Language",
+        "details": "HTML language declared as 'en'.",
+        "recommendation": null
+      },
+      {
+        "level": 1,
+        "message": "Favicon Link/Default Resolved",
+        "element_type": "Favicon",
+        "details": "A favicon URL was resolved: https://datahunter.store/favicon.ico",
+        "recommendation": null
+      },
+      {
+        "level": 1,
+        "message": "Single H1 Tag Present",
+        "element_type": "H1 Tag",
+        "details": "Page has a single H1 tag, which is generally the recommended practice for the main page heading.",
+        "recommendation": null
+      },
+      {
+        "level": 1,
+        "message": "Logical Heading Hierarchy",
+        "element_type": "Headings Hierarchy",
+        "details": "The heading structure appears logical and hierarchical without any skipped levels.",
+        "recommendation": null
+      },
+      {
+        "level": 1,
+        "message": "Sufficient Content Length",
+        "element_type": "Content Quality",
+        "details": "Main content length (1803 chars) meets or exceeds the minimum recommendation.",
+        "recommendation": null
+      },
+      {
+        "level": 2,
+        "message": "Low Text-to-HTML Ratio",
+        "element_type": "Content Quality",
+        "details": "Text-to-HTML ratio is 14.06%. This may indicate excessive code/scripts relative to textual content.",
+        "recommendation": "Review page structure for unnecessary code, inline styles/scripts, or large comment blocks. Ensure there is substantial textual content relevant to the page topic."
+      },
+      {
+        "level": 2,
+        "message": "Low to Moderate Readability Score",
+        "element_type": "Content Readability",
+        "details": "Flesch Reading Ease score is 50.4. Content may be challenging for some segments of your audience.",
+        "recommendation": "Consider simplifying complex language and sentence structures to make the content accessible to a broader audience."
+      },
+      {
+        "level": 0,
+        "message": "No Images Found on Page",
+        "element_type": "Image SEO",
+        "details": "No <img> tags were found in the HTML content. Images can enhance user engagement.",
+        "recommendation": "If images are relevant to your content, consider adding them with appropriate alt text."
+      },
+      {
+        "level": 1,
+        "message": "Essential Open Graph Tags Present",
+        "element_type": "Open Graph",
+        "details": "Essential Open Graph tags (title, type, image, url) are present and have content.",
+        "recommendation": null
+      },
+      {
+        "level": 0,
+        "message": "No Twitter Card Tags Found",
+        "element_type": "Twitter Card",
+        "details": "No Twitter Card meta tags were found on the page.",
+        "recommendation": "Consider adding Twitter Card tags for optimized display and engagement when your content is shared on Twitter."
+      },
+      {
+        "level": 0,
+        "message": "No Common Structured Data Detected",
+        "element_type": "Structured Data",
+        "details": "No common structured data formats (JSON-LD, Microdata, RDFa) were found on the page.",
+        "recommendation": "Consider adding structured data (Schema.org markup, typically via JSON-LD) to help search engines understand your content better and potentially enable rich results in SERPs."
+      }
+    ],
+    "recommendations": [
+      "Consider simplifying complex language and sentence structures to make the content accessible to a broader audience.",
+      "Review page structure for unnecessary code, inline styles/scripts, or large comment blocks. Ensure there is substantial textual content relevant to the page topic."
+    ]
+  }
+}
