@@ -1,0 +1,23 @@
+services:
+  # Сервис валидатора (W3C)
+  html-validator:
+    image: ghcr.io/validator/validator:latest
+    ports:
+      - "8888:8888"
+    environment:
+      - CONNECTION_TIMEOUT=5000
+    restart: always
+
+  # Ваш Python сервис
+  seo-app:
+    build: ./app
+    volumes:
+      - .:/app
+    ports:
+      - "${APP_PORT}:8000"
+    depends_on:
+      - html-validator
+    environment:
+      - VALIDATOR_URL=http://html-validator:8888/?out=json
+    # Запускаем сервер с автоперезагрузкой при изменении кода
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload

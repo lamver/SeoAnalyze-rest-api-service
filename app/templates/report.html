@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Отчет: {{ d.url }}</title>
+    <!-- Подключаем полноценный Bootstrap 5 -->
+    <link href="https://jsdelivr.net" rel="stylesheet">
+    <style>
+        .score-badge { 
+            font-size: 2rem; width: 90px; height: 90px; 
+            display: flex; align-items: center; justify-content: center; 
+            border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .header-outline { border-bottom: 1px solid #dee2e6; transition: background 0.2s; }
+        .header-outline:hover { background-color: #f8f9fa; }
+        /* Стили для отступов заголовков в зависимости от уровня */
+        .indent-h1 { margin-left: 0; font-weight: bold; }
+        .indent-h2 { margin-left: 20px; }
+        .indent-h3 { margin-left: 40px; color: #666; }
+        .indent-h4 { margin-left: 60px; font-size: 0.9rem; color: #888; }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <!-- Шапка отчета -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Анализ страницы</h1>
+                    <a href="{{ d.url }}" target="_blank" class="text-decoration-none">{{ d.url }}</a>
+                </div>
+                <div class="score-badge {% if d.seo_health.score > 80 %}bg-success{% else %}bg-warning{% endif %} text-white">
+                    {{ d.seo_health.score }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- Мета-теги -->
+            <div class="col-md-7">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="mb-0">Мета-теги и Сниппет</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold">TITLE</label>
+                            <p class="mb-2 border-start border-primary border-4 ps-2">{{ d.meta.title or 'Не найден' }}</p>
+                        </div>
+                        <div>
+                            <label class="small text-muted fw-bold">DESCRIPTION</label>
+                            <p class="mb-0 border-start border-info border-4 ps-2 small">{{ d.meta.description or 'Не найден' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Валидация HTML -->
+            <div class="col-md-5">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-header bg-danger text-white py-3 d-flex justify-content-between">
+                        <h5 class="mb-0">Валидация HTML</h5>
+                        <span class="badge bg-white text-danger">{{ d.html_validation.total_issues }}</span>
+                    </div>
+                    <div class="card-body overflow-auto" style="max-height: 250px;">
+                        {% if d.html_validation.errors %}
+                            {% for err in d.html_validation.errors %}
+                                <div class="alert alert-danger p-2 mb-2" style="font-size: 0.85rem;">
+                                    <strong>Стр. {{ err.lastLine }}:</strong> {{ err.message }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-success fw-bold">Критических ошибок верстки не найдено!</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Структура заголовков -->
+        <div class="card shadow-sm border-0">
+    <div class="card-header bg-dark text-white py-3">
+        <h5 class="mb-0">Иерархия заголовков (Headings)</h5>
+    </div>
+    <div class="card-body">
+        {% set headings_data = d.get('raw_data', {}).get('headings', {}).get('all_headings', {}) %}
+        
+        {% if headings_data %}
+            {% for h_tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] %}
+                {% if headings_data[h_tag] %}
+                    {% for h_text in headings_data[h_tag] %}
+                        <div class="header-outline py-2 indent-{{ h_tag }}">
+                            <span class="badge bg-secondary me-2">{{ h_tag|upper }}</span>
+                            <span>{{ h_text }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">Заголовки не обнаружены.</p>
+        {% endif %}
+    </div>
+</div>
+
+        <footer class="mt-5 text-center text-muted small">
+            Генерация отчета: SEO Analyzer Service &copy; 2024
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,66 +1,66 @@
-import asyncio
-import json
-from urllib.parse import urlparse
-from crawl4ai import AsyncWebCrawler, CrawlerRunConfig, CacheMode
+import os
+import requests
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+from seokar import Seokar
 
-async def main():
-    base_url = "https://datahunter.store"
-    domain = urlparse(base_url).netloc
-    max_depth = 2  # Укажите нужную глубину
-    
-    visited_urls = set()
-    to_crawl = {base_url}
-    all_reports = []
+app = FastAPI(title="SEO Analyzer Professional")
 
-    async with AsyncWebCrawler() as crawler:
-        config = CrawlerRunConfig(cache_mode=CacheMode.BYPASS)
+# Настройка шаблонов
+templates = Jinja2Templates(directory="templates")
+VALIDATOR_URL = os.getenv('VALIDATOR_URL', 'http://html-validator:8888/?out=json')
 
-        for depth in range(max_depth + 1):
-            if not to_crawl:
-                break
-            
-            print(f"--- Анализ уровня {depth}. Страниц: {len(to_crawl)} ---")
-            
-            # Запускаем пачку URL текущего уровня
-            current_urls = list(to_crawl)
-            results = await crawler.arun_many(current_urls, config=config)
-            
-            visited_urls.update(current_urls)
-            to_crawl = set() # Очищаем очередь для следующего уровня
+class AnalyzeRequest(BaseModel):
+    url: str
 
-            for res in results:
-                if not res.success:
-                    continue
+# --- Вспомогательная функция для сбора данных ---
+def fetch_seo_data(url: str):
+    # 1. Загрузка контента
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    html_content = response.text
 
-                # 1. Анализируем текущую страницу
-                analysis = {
-                    "url": res.url,
-                    "depth": depth,
-                    "title": res.metadata.get('title', ''),
-                    "warnings": []
-                }
-                
-                # Мини-аудит
-                if not analysis["title"]: analysis["warnings"].append("No Title")
-                if res.status_code >= 400: analysis["warnings"].append(f"Broken link: {res.status_code}")
-                
-                all_reports.append(analysis)
+    # 2. SEO Анализ
+    analyzer = Seokar(html_content=html_content, url=url)
+    seo_report = analyzer.analyze()
 
-                # 2. Собираем ссылки для следующего уровня (если еще не предел глубины)
-                if depth < max_depth:
-                    internal_links = res.links.get("internal", [])
-                    for link in internal_links:
-                        href = link["href"]
-                        # Проверяем, что ссылка ведет на тот же домен и мы там еще не были
-                        if domain in href and href not in visited_urls:
-                            to_crawl.add(href)
+    # 3. Валидация HTML
+    v_headers = {'Content-Type': 'text/html; charset=utf-8'}
+    v_response = requests.post(VALIDATOR_URL, data=html_content.encode('utf-8'), headers=v_headers)
+    html_errors = v_response.json().get('messages', [])
 
-        # Сохраняем всё в один файл
-        with open("deep_seo_report.json", "w", encoding="utf-8") as f:
-            json.dump(all_reports, f, ensure_ascii=False, indent=4)
-        
-        print(f"\nГотово! Проверено страниц: {len(all_reports)}")
-        print("Результаты в deep_seo_report.json")
+    return {
+        "url": url,
+        "seo_health": seo_report.get('seo_health', {}),
+        "html_validation": {
+            "total_issues": len(html_errors),
+            "errors": [m for m in html_errors if m['type'] == 'error'],
+            "warnings": [m for m in html_errors if (m['type'] == 'info' or m.get('subType') == 'warning')]
+        },
+        "meta": {
+            "title": seo_report.get('basic_seo', {}).get('title'),
+            "description": seo_report.get('basic_seo', {}).get('meta_description'),
+        },
+        "raw_data": seo_report
+    }
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# --- 1. Эндпоинт для JSON (для ботов и кода) ---
+@app.post("/api/analyze")
+def analyze_json(request: AnalyzeRequest):
+    try:
+        return fetch_seo_data(request.url)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- 2. Эндпоинт для Красивого HTML (для людей) ---
+# Мы используем GET, чтобы можно было просто скинуть ссылку другу
+@app.get("/view", response_class=HTMLResponse)
+def analyze_view(request: Request, url: str):
+    try:
+        data = fetch_seo_data(url)
+        # Передаем как один объект 'd'
+        return templates.TemplateResponse("report.html", {"request": request, "d": data})
+    except Exception as e:
+        return HTMLResponse(content=f"<h1>Ошибка: {e}</h1>", status_code=500)
