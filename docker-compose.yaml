@@ -11,7 +11,6 @@ services:
   # Ваш Python сервис
   seo-app:
     build: ./app
-    working_dir: /app
     volumes:
       - ./app:/app
     ports:
