@@ -11,13 +11,15 @@ services:
   # Ваш Python сервис
   seo-app:
     build: ./app
+    working_dir: /app
     volumes:
-      - .:/app
+      - ./app:/app
     ports:
       - "${APP_PORT}:8000"
     depends_on:
       - html-validator
     environment:
+      - PYTHONPATH=/app
       - VALIDATOR_URL=http://html-validator:8888/?out=json
     # Запускаем сервер с автоперезагрузкой при изменении кода
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload

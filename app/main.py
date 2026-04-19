@@ -20,7 +20,7 @@ async def trace_errors(request: Request, call_next):
         return PlainTextResponse(traceback.format_exc(), status_code=500)
     
 # Настройка шаблонов
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory="templates")
 
 # Добавляем пользовательские фильтры для Jinja2
 def truncate_filter(s, length=100):
