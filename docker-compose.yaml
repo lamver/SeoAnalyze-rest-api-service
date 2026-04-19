@@ -20,4 +20,4 @@ services:
     environment:
       - VALIDATOR_URL=http://html-validator:8888/?out=json
     # Запускаем сервер с автоперезагрузкой при изменении кода
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
