@@ -9,6 +9,12 @@ from pydantic import BaseModel
 from seokar import Seokar
 from datetime import datetime
 import traceback
+from fastapi import Response
+from fastapi.responses import PlainTextResponse
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse
+from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
+from urllib.parse import urlparse
 
 app = FastAPI(title="SEO Analyzer Professional")
 
@@ -95,3 +101,78 @@ def analyze_view(request: Request, url: str):
         )
     except Exception as e:
         return HTMLResponse(content=f"<h1>Ошибка: {e}</h1>", status_code=500)
+
+def get_links(url, base_domain):
+    """Вспомогательная функция для сбора внутренних ссылок на странице"""
+    try:
+        res = requests.get(url, timeout=5, headers={'User-Agent': 'Sitemap-Generator/1.0'})
+        soup = BeautifulSoup(res.text, 'html.parser')
+        links = set()
+        for a in soup.find_all('a', href=True):
+            full_url = urljoin(url, a['href']).split('#')[0].rstrip('/')
+            # Проверяем, что ссылка ведет на тот же домен
+            if urlparse(full_url).netloc == base_domain:
+                links.add(full_url)
+        return links
+    except:
+        return set()
+
+@app.get("/sitemap.xml")
+async def generate_sitemap(url: str, max_depth: int = 1):
+    # Crawl4AI автоматически классифицирует ссылки
+    parsed_input = urlparse(url)
+    main_domain = ".".join(parsed_input.netloc.split('.')[-2:])
+    visited = {url.rstrip('/')}
+    to_visit = [url.rstrip('/')]
+
+    async with AsyncWebCrawler(config=BrowserConfig(headless=True)) as crawler:
+        for _ in range(max_depth):
+            new_links = []
+            for current_url in to_visit:
+                # Crawl4AI обрабатывает динамический контент и JS
+                result = await crawler.arun(url=current_url, config=CrawlerRunConfig(cache_mode=CacheMode.BYPASS))
+                
+                if result.success:
+                    for link_data in result.links.get("internal", []):
+                        href = link_data.get("href", "").rstrip('/')
+                        if href and href not in visited and main_domain in urlparse(href).netloc:
+                            visited.add(href)
+                            new_links.append(href)
+            to_visit = new_links
+            if not to_visit: break
+
+    # Формирование XML
+    url_tags = "\n".join([f"    <url><loc>{link}</loc></url>" for link in sorted(visited)])
+    sitemap_xml = f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://sitemaps.org">\n{url_tags}\n</urlset>'
+    return Response(content=sitemap_xml, media_type="application/xml")
+
+@app.get("/debug-content") # Временно сменим имя, чтобы не путать с sitemap
+async def debug_content(url: str):
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True, 
+            args=["--no-sandbox", "--disable-dev-shm-usage"]
+        )
+        context = await browser.new_context(ignore_https_errors=True)
+        page = await context.new_page()
+        
+        print(f">>> Захожу на: {url}")
+        try:
+            # Ждем загрузки
+            await page.goto(url, wait_until="networkidle", timeout=20000)
+            
+            # Если это SPA, даем пару секунд на рендер
+            await page.wait_for_timeout(2000) 
+            
+            # Получаем ВЕСЬ отрендеренный HTML
+            raw_html = await page.content()
+            
+            await browser.close()
+            
+            # Возвращаем как обычный текст, чтобы браузер не пытался это исполнить
+            return PlainTextResponse(raw_html)
+            
+        except Exception as e:
+            await browser.close()
+            return PlainTextResponse(f"Ошибка: {str(e)}")
+        
