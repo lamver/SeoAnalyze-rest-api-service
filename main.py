@@ -4,6 +4,7 @@ import json
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from seokar import Seokar
 from datetime import datetime
@@ -38,36 +39,30 @@ class AnalyzeRequest(BaseModel):
 # --- Вспомогательная функция для сбора данных ---
 def fetch_seo_data(url: str):
     # 1. Загрузка контента
-    response = requests.get(url, timeout=10)
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SEO-Analyzer/1.0'}
+    response = requests.get(url, timeout=10, headers=headers)
     response.raise_for_status()
     html_content = response.text
 
-    # 2. SEO Анализ
+    # 2. Анализ (библиотека сама соберет все данные)
     analyzer = Seokar(html_content=html_content, url=url)
-    seo_report = analyzer.analyze()
+    report = analyzer.analyze()
 
-    # 3. Валидация HTML
-    v_headers = {'Content-Type': 'text/html; charset=utf-8'}
-    v_response = requests.post(VALIDATOR_URL, data=html_content.encode('utf-8'), headers=v_headers)
-    html_errors = v_response.json().get('messages', [])
+    # 3. Валидация HTML (добавляем её отдельным ключом в общий отчет)
+    try:
+        v_headers = {'Content-Type': 'text/html; charset=utf-8'}
+        v_response = requests.post(VALIDATOR_URL, data=html_content.encode('utf-8'), headers=v_headers, timeout=5)
+        html_validation = v_response.json().get('messages', [])
+    except Exception:
+        html_validation = "Validator unavailable"
 
-   # Собираем данные
-    data = {
-        "url": url,
-        "seo_health": seo_report.get('seo_health', {}),
-        "html_validation": {
-            "total_issues": len(html_errors),
-            "errors": [m for m in html_errors if m['type'] == 'error']
-        },
-        "meta": {
-            "title": seo_report.get('basic_seo', {}).get('title', 'N/A'),
-            "description": seo_report.get('basic_seo', {}).get('meta_description', 'N/A')
-        },
-        "headings": seo_report.get('headings', {}).get('all_headings', {})
-    }
-    
-    # КРИТИЧЕСКИЙ МОМЕНТ: Превращаем всё в чистый JSON-словарь без объектов классов
-    return json.loads(json.dumps(data, default=str))
+    # Добавляем валидацию прямо в основной отчет
+    report['html_validation_raw'] = html_validation
+
+    # 4. Выплевываем ВСЁ в JSON
+    # jsonable_encoder превратит все вложенные объекты и специфические типы данных в чистый dict
+    return jsonable_encoder(report)
+
 
 # --- 1. Эндпоинт для JSON (для ботов и кода) ---
 @app.post("/api/analyze")

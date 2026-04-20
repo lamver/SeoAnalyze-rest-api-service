@@ -10,9 +10,9 @@ services:
 
   # Ваш Python сервис
   seo-app:
-    build: ./app
+    build: .
     volumes:
-      - ./app:/app
+      - ./templates:/app/templates
     ports:
       - "${APP_PORT}:8000"
     depends_on:
