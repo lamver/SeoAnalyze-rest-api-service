@@ -3,6 +3,5 @@ uvicorn
 requests
 seokar
 jinja2
-beautifulsoup4
 playwright
 crawl4ai

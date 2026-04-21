@@ -1,7 +1,7 @@
 import os
 import requests
 import json
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.encoders import jsonable_encoder
@@ -9,12 +9,8 @@ from pydantic import BaseModel
 from seokar import Seokar
 from datetime import datetime
 import traceback
-from fastapi import Response
-from fastapi.responses import PlainTextResponse
-from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
-from urllib.parse import urlparse
 
 app = FastAPI(title="SEO Analyzer Professional")
 
@@ -146,33 +142,33 @@ async def generate_sitemap(url: str, max_depth: int = 1):
     sitemap_xml = f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://sitemaps.org">\n{url_tags}\n</urlset>'
     return Response(content=sitemap_xml, media_type="application/xml")
 
-@app.get("/debug-content") # Временно сменим имя, чтобы не путать с sitemap
+@app.get("/debug-content")
 async def debug_content(url: str):
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True, 
-            args=["--no-sandbox", "--disable-dev-shm-usage"]
+    # Настраиваем браузер так, чтобы он не выглядел как бот
+    browser_config = BrowserConfig(
+        headless=True,
+        # Это база для обхода детекта
+        extra_args=["--disable-blink-features=AutomationControlled"],
+        # Игнорируем проблемы с SSL на дев-стендах
+        ignore_https_errors=True
+    )
+
+    run_config = CrawlerRunConfig(
+        cache_mode=CacheMode.BYPASS,
+        # Вместо magic_mode используем эмуляцию ожидания
+        wait_until="networkidle",
+        # Даем время на выполнение тяжелых скриптов
+        page_timeout=30000 
+    )
+
+    async with AsyncWebCrawler(config=browser_config) as crawler:
+        result = await crawler.arun(url=url, config=run_config)
+        
+        if result.success:
+            return PlainTextResponse(result.html)
+        
+        # Выводим детали, если не пробились
+        return PlainTextResponse(
+            f"Status: {result.status_code}\nError: {result.error_message}\nHTML: {result.html[:300]}", 
+            status_code=500
         )
-        context = await browser.new_context(ignore_https_errors=True)
-        page = await context.new_page()
-        
-        print(f">>> Захожу на: {url}")
-        try:
-            # Ждем загрузки
-            await page.goto(url, wait_until="networkidle", timeout=20000)
-            
-            # Если это SPA, даем пару секунд на рендер
-            await page.wait_for_timeout(2000) 
-            
-            # Получаем ВЕСЬ отрендеренный HTML
-            raw_html = await page.content()
-            
-            await browser.close()
-            
-            # Возвращаем как обычный текст, чтобы браузер не пытался это исполнить
-            return PlainTextResponse(raw_html)
-            
-        except Exception as e:
-            await browser.close()
-            return PlainTextResponse(f"Ошибка: {str(e)}")
-        
