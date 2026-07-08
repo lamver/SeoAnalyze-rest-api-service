@@ -2,6 +2,8 @@ services:
   # Сервис валидатора (W3C)
   html-validator:
     image: ghcr.io/validator/validator:latest
+    ports:
+      - "8888:8888"
     environment:
       - CONNECTION_TIMEOUT=5000
     restart: always
