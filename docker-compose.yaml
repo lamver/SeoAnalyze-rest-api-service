@@ -10,7 +10,7 @@ services:
   seo-app:
     build: .
     volumes:
-      - .:/app
+      #- .:/app
       - ./templates:/app/templates
     depends_on:
       - html-validator
