@@ -3,7 +3,7 @@ services:
   html-validator:
     image: ghcr.io/validator/validator:latest
     ports:
-      - "8888:8888"
+      - "8888:8888" # Правильный маппинг: внешние 8888 -> внутренние 8888
     environment:
       - CONNECTION_TIMEOUT=5000
     restart: always
@@ -12,13 +12,13 @@ services:
   seo-app:
     build: .
     volumes:
+      - .:/app
       - ./templates:/app/templates
     ports:
-      - "${APP_PORT}:8000"
+      - "${APP_PORT:-8000}:8000" # Если APP_PORT не задан в .env, возьмет 8000
     depends_on:
       - html-validator
     environment:
       - PYTHONPATH=/app
-      - VALIDATOR_URL=http://html-validator:8888/?out=json
-    # Запускаем сервер с автоперезагрузкой при изменении кода
+      - VALIDATOR_URL=http://html-validator:8888/?out=json # Теперь это будет работать правильно
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload

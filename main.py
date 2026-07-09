@@ -1,7 +1,7 @@
 import os
 import requests
 import json
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response, Body
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.encoders import jsonable_encoder
@@ -11,6 +11,7 @@ from datetime import datetime
 import traceback
 from urllib.parse import urljoin, urlparse
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
+import httpx
 
 app = FastAPI(title="SEO Analyzer Professional")
 
@@ -39,40 +40,68 @@ class AnalyzeRequest(BaseModel):
     url: str
 
 # --- Вспомогательная функция для сбора данных ---
-def fetch_seo_data(url: str):
-    # 1. Загрузка контента
+async def fetch_seo_data(url: str) -> dict:
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SEO-Analyzer/1.0'}
-    response = requests.get(url, timeout=10, headers=headers)
-    response.raise_for_status()
-    html_content = response.text
+    
+    # Используем асинхронный клиент httpx вместо requests
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, timeout=10.0)
+        response.raise_for_status()
+        html_content = response.text
+    
+    # Обязательно добавляем await, так как process_html_content теперь асинхронная
+    return await process_html_content(html_content, url=url)
 
-    # 2. Анализ (библиотека сама соберет все данные)
-    analyzer = Seokar(html_content=html_content, url=url)
-    report = analyzer.analyze()
 
-    # 3. Валидация HTML (добавляем её отдельным ключом в общий отчет)
+@app.post("/api/analyze-html")
+async def analyze_raw_html(html_content: str = Body(..., media_type="text/html")):
     try:
-        v_headers = {'Content-Type': 'text/html; charset=utf-8'}
-        v_response = requests.post(VALIDATOR_URL, data=html_content.encode('utf-8'), headers=v_headers, timeout=5)
-        html_validation = v_response.json().get('messages', [])
+        if not html_content.strip():
+            raise HTTPException(status_code=400, detail="Тело запроса пустое. Пришлите HTML-код.")
+            
+        # Так как html_content теперь сразу строка, разбирать request.body() вручную не нужно
+        report_data = await process_html_content(html_content)
+        return jsonable_encoder(report_data)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка анализа HTML: {str(e)}")
+
+async def process_html_content(html_content: str, url: str = "http://localhost") -> dict:
+    """Анализирует HTML-код и отправляет его на валидацию."""
+    # 1. Анализ через Seokar (БЕЗ await, так как библиотека синхронная)
+    analyzer = Seokar(html_content=html_content, url=url)
+    report = analyzer.analyze()  # <-- Убрали await здесь
+
+    # 2. Валидация HTML через асинхронный клиент (Здесь await нужен!)
+    try:
+        async with httpx.AsyncClient() as client:
+            v_headers = {'Content-Type': 'text/html; charset=utf-8'}
+            v_response = await client.post(
+                VALIDATOR_URL, 
+                content=html_content.encode('utf-8'), 
+                headers=v_headers, 
+                timeout=5.0
+            )
+            html_validation = v_response.json().get('messages', [])
     except Exception:
-        html_validation = "Validator unavailable"
+        html_validation = [{"message": "Validator unavailable", "type": "error"}]
 
-    # Добавляем валидацию прямо в основной отчет
-    report['html_validation_raw'] = html_validation
-
-    # 4. Выплевываем ВСЁ в JSON
-    # jsonable_encoder превратит все вложенные объекты и специфические типы данных в чистый dict
-    return jsonable_encoder(report)
-
+    report['html_validation'] = html_validation
+    return report
 
 # --- 1. Эндпоинт для JSON (для ботов и кода) ---
 @app.post("/api/analyze")
-def analyze_json(request: AnalyzeRequest):
+async def analyze_json(payload: AnalyzeRequest):  # Добавили async и переименовали переменную для ясности
     try:
-        return fetch_seo_data(request.url)
+        url_str = str(payload.url)
+        # Добавляем await перед вызовом асинхронной функции
+        report_data = await fetch_seo_data(url_str)
+        return jsonable_encoder(report_data)
+        
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=400, detail=f"Сайт вернул ошибку: {e.response.status_code}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Ошибка анализа: {str(e)}")
 
 # --- 2. Эндпоинт для Красивого HTML (для людей) ---
 # Мы используем GET, чтобы можно было просто скинуть ссылку другу
