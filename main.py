@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
+from typing import Optional
 from seokar import Seokar
 from datetime import datetime
 import traceback
@@ -54,13 +55,16 @@ async def fetch_seo_data(url: str) -> dict:
 
 
 @app.post("/api/analyze-html")
-async def analyze_raw_html(html_content: str = Body(..., media_type="text/html")):
+async def analyze_raw_html(html_content: str = Body(..., media_type="text/html"), url: Optional[str] = None):
     try:
         if not html_content.strip():
             raise HTTPException(status_code=400, detail="Тело запроса пустое. Пришлите HTML-код.")
             
         # Так как html_content теперь сразу строка, разбирать request.body() вручную не нужно
-        report_data = await process_html_content(html_content)
+        # url - адрес, с которого скачан HTML. Без него canonical и внутренние
+        # ссылки сравниваются с http://localhost и дают ложные замечания.
+        page_url = url if url and urlparse(url).scheme in ("http", "https") and urlparse(url).netloc else "http://localhost"
+        report_data = await process_html_content(html_content, url=page_url)
         return jsonable_encoder(report_data)
         
     except Exception as e:
